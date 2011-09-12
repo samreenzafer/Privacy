@@ -1,0 +1,14 @@
+# Requires installing the modules Crypt and its supporting modules and adding to the path, for running encrypt.pl
+
+# Input VCF files should be annotated by vcfCodingSNPS v1.5 ( http://www.sph.umich.edu/csg/liyanmin/vcfCodingSnps/index.shtml ).
+
+# The gene list used for annotating the input vcf files must be provided as input to encrypt.pl
+
+# Run encrypt.pl as 
+perl encrypt.pl --user=S --keyfile=S --case=S{,} --control=S{,} -genelist=S -weight=S --out=S [--non_syn]
+
+# Help on encrypt.pl
+perl encrypt.pl --help
+perl encrypt.pl -h
+
+ 
