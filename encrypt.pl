@@ -24,7 +24,7 @@ use POSIX qw/floor/;
 	my $master_gene;		# Reference pointing to structure 'user' containing user's information, key and cipher - Input parameter
 	my $user;			# Reference pointing to structure 'gene' containing list of genes, functional weights - Input parameter
 
-	my %curr_gene_pool=();		# a pool which maintains list of genes currently having open file handles. Once a gene is completely analysed, its file handle is closed and removed from this hash
+	my %current_gene_pool=();		# a pool which maintains list of genes currently having open file handles. Once a gene is completely analysed, its file handle is closed and removed from this hash
 	my $geneCount=0;		# a counter of total number of genes encountered, aids in naming new vcf files as GeneXXX.vcf
 	my @IDs=();			# Array of Individuals IDs filled while reading headers of all input vcf files
 	my %IDhash=();			# Hash with key=> Individual ID, Value=> Phenotype 
@@ -80,15 +80,15 @@ sub extractIndividualsIDs{		#subroutine to extract all Individual IDs, modify th
 	$aFile->{ID_START}= scalar( @IDs);
 	my $mark;
 	my $partnum = scalar(@parts);
-  	if($partnum>10){ #if there is more than one individual in the file
+  	if($partnum>10){ #if there are more than one individuals/samples in the file
 		if($phenotype==-1){  #if it is a control file
                 	for($i=9;$i<$partnum;$i++){
-                        	if($parts[$i]!~/\W/ && !exists($IDhash{$parts[$i]})){ #if the id hasn't been seen before and isn't blank
+                        	if($parts[$i]!~/\W/ && !exists($IDhash{$user->{USERNAME}.'control'.$parts[$i]} )){ #if the id hasn't been seen before and isn't blank
                                 	$IDhash{$user->{USERNAME}.'control'.$parts[$i]} = -1;
                                         push(@IDs,$user->{USERNAME}.'control'.$parts[$i]); #add the id to the array
                                         $mark =1;
                                 }
-                                elsif($parts[$i]!~/\W/  && $mark!=2){ #if it is blank, use the filehandle as the ID unless the file handle has already been used
+                                elsif($parts[$i]~/\W/  && $mark!=2){ #if it is blank, use the filehandle as the ID unless the file handle has already been used
                                 	push(@IDs,$user->{USERNAME}.'control'.$VCFfile);
                                         $mark=2;
                                 }
@@ -97,12 +97,12 @@ sub extractIndividualsIDs{		#subroutine to extract all Individual IDs, modify th
                 } #end if pheno is control file
                 else{   #this does the same as above, but for case files
                 	for($i=9;$i<$partnum;$i++){
-                        	if($parts[$i]!~/\W/ && !exists($IDhash{$parts[$i]})){
+                        	if($parts[$i]!~/\W/ && !exists($IDhash{$user->{USERNAME}.'case'.$parts[$i]})){
                                 	push(@IDs,$user->{USERNAME}.'case'.$parts[$i]);
                                         $IDhash{ $user->{USERNAME}.'case'.$parts[$i]} = 1;
                                         $mark =1;
                                 }
-                                elsif($parts[$i]!~/\W/ && $mark!=2){
+                                elsif($parts[$i]~/\W/ && $mark!=2){
                                         push(@IDs,$user->{USERNAME}.'case'.$VCFfile);
                                 	$mark=2;
                                 }
@@ -337,8 +337,8 @@ sub extractInfo {		#arguments - $object_ref (discarded), $file handle
 sub find_next_SNP{  		#subroutine - from all the open files handles (input vcf files), this subroutine decides which file will have the next line processed. All input files are processed in the order of increasing SNP positions. The file which is decided to be processed next will have its FLAG_READ flag set to 1, to indicate that a file read is to be done afterwards.
 
         my $self = shift;
-        my $min_chr="23";
-        my $min_pos="18446744073709551615";
+        my $min_chr="23";				# TODO update the search for chromosome X Y and M
+        my $min_pos="18446744073709551615";		#TODO use machine dependent largest number in perl
 	my $minFile={};
 
         foreach $aFile(@input_file){
@@ -533,7 +533,7 @@ if (@ARGV > 0 ) {
 	&{$options->{INITIALIZE}}($options);
 
 	 if ($options->{FLAG_HELP}) {print "\nHelp Options..\n";
-                print "\n (1) Encrypt Data: \n\t ./encrypt.pl --user=S --keyfile=S --case=S{,} --control=S{,} -genelist=S -weight=S --out=S [--non_syn]";
+                print "\n (1) Encrypt Data: \n\t ./encrypt.pl --user=S --keyfile=S --case=S{,} --control=S{,} --genelist=S --weight=S --out=S [--non_syn]";
                 print "\n (2) Help: \n\t ./encrypt.pl --help\n\n";
                 exit;
         }
